@@ -1,6 +1,7 @@
 return {
     debugPoly = false,
-    useTarget = GetConvar('UseTarget', 'false') == 'true',
+    useTarget = true,
+    useInteract = true, -- useTarget must be true
     vehicles = {
         ["flatbed"] = "Flatbed",
     }

@@ -1,4 +1,5 @@
 return {
     bailPrice = 250,
-    paymentTax = 15
+    paymentTax = 0,
+    farePaymentMultiplier = 1,
 }

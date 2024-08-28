@@ -1,18 +1,28 @@
 return {
+    usingJob = false,
     locations = {
-        ["main"] = {
-            label = "Towing HQ",
-            coords = vec4(471.39, -1311.03, 29.21, 114.5),
+        main = {
+            model = 'mp_m_waremech_01',
+            scenario = 'WORLD_HUMAN_CLIPBOARD',
+            label = locale('zone.job_label'),
+            coords = vec4(496.65, -1339.54, 29.32, 358.46),
+            size = vec3(3.0, 3.0, 5.0),
+            markerType = 2,
+            markerRadius = 10.0,
+            interactionsRadius = 5.0,
+            rotation = 274.5,
+            icon = 'fa-solid fa-eye',
+            debug = false
         },
-        ["vehicle"] = {
+        vehicle = {
             label = "Flatbed",
             coords = vec4(489.65, -1331.82, 29.33, 306.5),
         },
-        ["dropoff"] = {
+        dropoff = {
             label = "Vehicle Drop Off Location",
-            coords = vec3(491.00, -1314.69, 29.25)
+            coords = vec4(492.33, -1313.17, 29.26, 300.32)
         },
-        ["towspots"] = {
+        towspots = {
             [1] = { model = "sultanrs", coords = vec3(-2480.8720703125, -211.96409606934, 17.397672653198) },
             [2] = { model = "zion", coords = vec3(-2723.392578125, 13.207388877869, 15.12806892395) },
             [3] = { model = "oracle", coords = vec3(-3169.6235351563, 976.18127441406, 15.038360595703) },

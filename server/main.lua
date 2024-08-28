@@ -8,36 +8,42 @@ RegisterNetEvent('qb-tow:server:DoBail', function(bool, vehInfo)
 
     if not bool then
         if not Bail[Player.PlayerData.citizenid] then return end
-        Player.Functions.AddMoney('bank', Bail[Player.PlayerData.citizenid], "tow-bail-paid")
+        Player.Functions.AddMoney('cash', Bail[Player.PlayerData.citizenid], "tow-bail-paid")
         Bail[Player.PlayerData.citizenid] = nil
         exports.qbx_core:Notify(source, locale("success.refund_to_cash", config.bailPrice), 'success')
         return
     end
 
-    if Player.PlayerData.money.cash < config.bailPrice or Player.PlayerData.money.bank < config.bailPrice then
-        exports.qbx_core:Notify(source, locale("error.no_deposit", config.bailPrice), 'error')
-        return
-    end
-
-    if Player.PlayerData.money.cash >= config.bailPrice then
-        paymentMethod = 'cash'
-    else
+    if Player.PlayerData.money.cash < config.bailPrice then
+        if Player.PlayerData.money.bank < config.bailPrice then
+            return exports.qbx_core:Notify(source, locale("error.no_deposit", config.bailPrice), 'error')
+        end
         paymentMethod = 'bank'
+        Player.Functions.RemoveMoney('bank', config.bailPrice, 'tow-received-bail')
+        exports.qbx_core:Notify(source, locale("success.paid_with_" .. paymentMethod, config.bailPrice), 'success')
+    else
+        paymentMethod = 'cash'
+        Player.Functions.RemoveMoney('cash', config.bailPrice, 'tow-received-bail')
+        exports.qbx_core:Notify(source, locale("success.paid_with_" .. paymentMethod, config.bailPrice), 'success')
     end
 
     Bail[Player.PlayerData.citizenid] = config.bailPrice
-    Player.Functions.RemoveMoney(paymentMethod, config.bailPrice, "tow-paid-bail")
-    exports.qbx_core:Notify(source, locale("success.paid_with_" .. paymentMethod, config.bailPrice), 'success')
     TriggerClientEvent('qb-tow:client:SpawnVehicle', source, vehInfo)
 end)
 
-RegisterNetEvent('qb-tow:server:11101110', function(drops)
+RegisterNetEvent('qb-tow:server:PaySlip', function(drops)
     local Player = exports.qbx_core:GetPlayer(source)
     if not Player then return end
 
     local playerPed = GetPlayerPed(source)
     local playerCoords = GetEntityCoords(playerPed)
-    if Player.PlayerData.job.name ~= "tow" or #(playerCoords - vec3(sharedConfig.locations["main"].coords.x, sharedConfig.locations["main"].coords.y, sharedConfig.locations["main"].coords.z)) > 6.0 then
+    if sharedConfig.usingJob then
+        if Player.PlayerData.job.name ~= "tow" or #(playerCoords - vec3(sharedConfig.locations.main.coords.x, sharedConfig.locations.main.coords.y, sharedConfig.locations.main.coords.z)) > 6.0 then
+            return DropPlayer(source, locale("info.skick"))
+        end
+    end
+
+    if #(playerCoords - vec3(sharedConfig.locations.main.coords.x, sharedConfig.locations.main.coords.y, sharedConfig.locations.main.coords.z)) > 6.0 then
         return DropPlayer(source, locale("info.skick"))
     end
 
@@ -52,9 +58,30 @@ RegisterNetEvent('qb-tow:server:11101110', function(drops)
     local taxAmount = math.ceil((price / 100) * config.paymentTax)
     local payment = price - taxAmount
 
-    Player.Functions.AddJobReputation(1)
+    -- Player.Functions.AddJobReputation(1)
     Player.Functions.AddMoney("bank", payment, "tow-salary")
     exports.qbx_core:Notify(source, locale("success.you_earned", payment), 'success')
+end)
+
+RegisterNetEvent('qb-tow:server:PayFare', function(fare)
+    local Player = exports.qbx_core:GetPlayer(source)
+    if not Player then return end
+
+    local playerPed = GetPlayerPed(source)
+    local playerCoords = GetEntityCoords(playerPed)
+    if sharedConfig.usingJob then
+        if Player.PlayerData.job.name ~= "tow" or #(playerCoords - vec3(sharedConfig.locations.dropoff.coords.x, sharedConfig.locations.dropoff.coords.y, sharedConfig.locations.dropoff.coords.z)) > 6.0 then
+            return DropPlayer(source, locale("info.skick"))
+        end
+    end
+
+    if #(playerCoords - vec3(sharedConfig.locations.dropoff.coords.x, sharedConfig.locations.dropoff.coords.y, sharedConfig.locations.dropoff.coords.z)) > 6.0 then
+        return DropPlayer(source, locale("info.skick"))
+    end
+
+    local amount = math.ceil(fare * config.farePaymentMultiplier)
+    Player.Functions.AddMoney("cash", amount, "tow-salary")
+    exports.qbx_core:Notify(source, locale("success.you_earned", amount), 'success')
 end)
 
 lib.addCommand('npc', {
@@ -67,8 +94,12 @@ lib.addCommand('tow', {
     help = locale("info.tow"),
 }, function(source)
     local Player = exports.qbx_core:GetPlayer(source)
-    if Player.PlayerData.job.name ~= "tow" and Player.PlayerData.job.name ~= "mechanic" then return end
-    TriggerClientEvent("qb-tow:client:TowVehicle", source)
+    if sharedConfig.usingJob then
+        if Player.PlayerData.job.name ~= "tow" and Player.PlayerData.job.name ~= "mechanic" then return end
+        TriggerClientEvent("qb-tow:client:TowVehicle", source)
+    else
+        TriggerClientEvent("qb-tow:client:TowVehicle", source)
+    end
 end)
 
 lib.callback.register('qb-tow:server:spawnVehicle', function(source, model, coords, warp)

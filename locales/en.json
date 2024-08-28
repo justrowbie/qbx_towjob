@@ -34,7 +34,14 @@
     },
     "label": {
         "payslip": "Payslip",
-        "vehicle": "Vehicle",
+        "vehicle": "Rent Vehicle",
+        "vehicle_return": "Return Vehicle",
         "npcz": "NPCZone"
+    },
+    "zone": {
+        "job_label": "Towing Job",
+        "vehicle_return": "E - Return Vehicle",
+        "vehicle_pickup": "E - Pickup Vehicle",
+        "vehicle_drop": "E - Drop Vehicle"
     }
 }
